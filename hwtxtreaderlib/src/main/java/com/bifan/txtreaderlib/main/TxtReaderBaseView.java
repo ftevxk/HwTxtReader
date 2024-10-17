@@ -64,6 +64,7 @@ public abstract class TxtReaderBaseView extends View implements GestureDetector.
     protected Mode CurrentMode = Mode.Normal;//当前页面模式
     protected boolean hasDown = false;
     private IPageEdgeListener pageEdgeListener;
+    private IPageEdgeListener pageMoveEdgeListener;
     private IPageChangeListener pageChangeListener;
     private ISliderListener sliderListener;
     private ICenterAreaClickListener centerAreaClickListener;
@@ -254,6 +255,9 @@ public abstract class TxtReaderBaseView extends View implements GestureDetector.
                 } else {
                     releaseTouch();
                     invalidate();
+                    if (pageMoveEdgeListener != null) {
+                        pageMoveEdgeListener.onCurrentFirstPage();
+                    }
                 }
             } else if (isPageNext()) {
                 if (!isLastPage()) {
@@ -261,6 +265,9 @@ public abstract class TxtReaderBaseView extends View implements GestureDetector.
                 } else {
                     releaseTouch();
                     invalidate();
+                    if (pageMoveEdgeListener != null) {
+                        pageMoveEdgeListener.onCurrentLastPage();
+                    }
                 }
             }
         } else {
@@ -1283,6 +1290,13 @@ public abstract class TxtReaderBaseView extends View implements GestureDetector.
 
     //-------------------------------------------------------------
 
+
+    /**
+     * @param pageMoveEdgeListener 页面滑动到边缘监听
+     */
+    public void setOnPageMoveEdgeListener(IPageEdgeListener pageMoveEdgeListener) {
+        this.pageMoveEdgeListener = pageMoveEdgeListener;
+    }
 
     /**
      * @param pageEdgeListener 当前页是首页获取尾页监听,注意如果文本只有一页，那边首页与尾页都会回调
