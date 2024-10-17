@@ -945,6 +945,86 @@ public abstract class TxtReaderBaseView extends View implements GestureDetector.
         SelectMoveBack//向后滑动选中文字
     }
 
+    //---------------------------获取数据总页数信息--------------------------------------
+    protected final AllPageTask allPageTask = new AllPageTask();
+
+    /**
+     * 获取当前页下标
+     */
+    public int getCurrentPageIndex() {
+        int index = 0;
+        IPage page = readerContext.getPageData().MidPage();
+        if (page != null && page.HasData() && !allPageTask.getAllPage().isEmpty()) {
+            for (int i = 0; i < allPageTask.getAllPage().size(); i++) {
+                IPage iPage = allPageTask.getAllPage().get(i);
+                if (iPage.getFirstLine().getLineStr().equals(page.getFirstLine().getLineStr())) {
+                    return i;
+                }
+            }
+        }
+        return index;
+    }
+
+    /**
+     * 获取总页数
+     */
+    public int getTotalPageCount() {
+        return allPageTask.getAllPage().size();
+    }
+
+    /**
+     * 重置当前内容总页数(重新获取数据前需重置)
+     */
+    public void resetAllPageCount() {
+        allPageTask.isGetTotalPageCount = false;
+    }
+
+    private class AllPageTask {
+        private boolean isGetTotalPageCount = false;
+        private final List<IPage> mAllPages = new ArrayList<>();
+
+        public List<IPage> getAllPage() {
+            if (!isGetTotalPageCount) {
+                mAllPages.clear();
+                run(readerContext);
+                isGetTotalPageCount = true;
+            }
+            return mAllPages;
+        }
+
+        public void run(TxtReaderContext readerContext) {
+            CurrentMode = Mode.PageNextIng;
+            IPage rawFirstPage = readerContext.getPageData().FirstPage();
+            IPage rawMidPage = readerContext.getPageData().MidPage();
+            IPage rawLastPage = readerContext.getPageData().LastPage();
+            if (rawMidPage != null) {
+                mAllPages.add(rawMidPage);
+                setPageSize(readerContext.getPageData().MidPage());
+                CurrentMode = Mode.Normal;
+                readerContext.getPageData().setFirstPage(rawFirstPage);
+                readerContext.getPageData().setMidPage(rawMidPage);
+                readerContext.getPageData().setLastPage(rawLastPage);
+            }
+        }
+
+        private void setPageSize(IPage midPage) {
+            IPage nextPage = null;
+            // 当前页为完整页，获取下一页数据
+            if (midPage != null && midPage.isFullPage()) {
+                //midPage是完整页，说明可能有下一页数据，否则没有下一页数据了
+                nextPage = readerContext.getPageDataPipeline().getPageStartFromProgress(
+                        midPage.getLastChar().ParagraphIndex, midPage.getLastChar().CharIndex + 1);
+            }
+            if (nextPage != null) {
+                mAllPages.add(nextPage);
+                if (nextPage.isFullPage()) {
+                    // nextPage是完整页，说明可能有下一页数据，递归获取
+                    setPageSize(nextPage);
+                }
+            }
+        }
+    }
+
 
     //---------------------------获取上一页、获取下一页数据--------------------------------------
 
