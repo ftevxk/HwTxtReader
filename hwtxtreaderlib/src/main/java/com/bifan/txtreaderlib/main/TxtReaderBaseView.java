@@ -979,6 +979,13 @@ public abstract class TxtReaderBaseView extends View implements GestureDetector.
         allPageTask.isGetTotalPageCount = false;
     }
 
+    /**
+     * 获取所有页数据
+     */
+    public List<IPage> getAllPage() {
+        return allPageTask.getAllPage();
+    }
+
     private class AllPageTask {
         private boolean isGetTotalPageCount = false;
         private final List<IPage> mAllPages = new ArrayList<>();
